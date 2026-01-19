@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简单测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .result { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 4px; background: #f8f9fa; }
+        .error { border-color: #dc3545; background: #f8d7da; }
+        .success { border-color: #28a745; background: #d4edda; }
+    </style>
+</head>
+<body>
+    <h1>🔧 JELILIAN AI 简单测试</h1>
+    
+    <button onclick="testBasic()">测试基础功能</button>
+    <button onclick="testAPI()">测试API</button>
+    <button onclick="testChat()">测试AI聊天</button>
+    
+    <div id="result"></div>
+
+    <script>
+        function log(message, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            const className = type === 'error' ? 'result error' : type === 'success' ? 'result success' : 'result';
+            resultDiv.innerHTML += `<div class="${className}">${message}</div>`;
+            console.log(message);
+        }
+        
+        function testBasic() {
+            document.getElementById('result').innerHTML = '';
+            log('🔍 开始基础测试...');
+            log('✅ JavaScript正常工作');
+            log('✅ 页面加载正常');
+            log('📍 当前地址: ' + window.location.href);
+            log('🔗 API基础地址: ' + window.location.origin + '/api');
+        }
+        
+        async function testAPI() {
+            log('🔍 开始API测试...');
+            
+            try {
+                const response = await fetch('/api/config');
+                log('📡 API请求发送成功');
+                log('📊 响应状态: ' + response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ API配置测试成功', 'success');
+                    log('📋 配置数据: ' + JSON.stringify(data, null, 2));
+                } else {
+                    log('❌ API返回错误状态: ' + response.status, 'error');
+                    const text = await response.text();
+                    log('📄 响应内容: ' + text, 'error');
+                }
+            } catch (error) {
+                log('❌ API请求失败: ' + error.message, 'error');
+                log('🔍 可能原因: API路由未正确配置或服务器错误', 'error');
+            }
+        }
+        
+        async function testChat() {
+            log('🔍 开始AI聊天测试...');
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: '你好',
+                        provider: 'qwen',
+                        options: { maxTokens: 100 }
+                    })
+                });
+                
+                log('📡 聊天请求发送成功');
+                log('📊 响应状态: ' + response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        log('✅ AI聊天测试成功', 'success');
+                        log('🤖 AI回复: ' + data.text);
+                    } else {
+                        log('❌ AI聊天失败: ' + data.error, 'error');
+                    }
+                } else {
+                    log('❌ 聊天请求失败: ' + response.status, 'error');
+                    const text = await response.text();
+                    log('📄 响应内容: ' + text, 'error');
+                }
+            } catch (error) {
+                log('❌ 聊天请求异常: ' + error.message, 'error');
+            }
+        }
+        
+        // 页面加载时自动运行基础测试
+        window.onload = function() {
+            testBasic();
+        };
+    </script>
+</body>
+</html>
