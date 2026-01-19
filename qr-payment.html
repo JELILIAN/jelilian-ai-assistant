@@ -41,16 +41,18 @@
             <div class="price-item">
                 <h4>个人版</h4>
                 <div style="font-size: 1.5rem; font-weight: bold; color: #007bff;">¥29/月</div>
+                <div style="font-size: 1rem; color: #666;">或 $4.99/月</div>
                 <p>无限AI对话</p>
             </div>
             <div class="price-item featured">
                 <h4>专业版 🔥</h4>
                 <div style="font-size: 1.5rem; font-weight: bold;">¥99/月</div>
+                <div style="font-size: 1rem;">或 $14.99/月</div>
                 <p>高级功能 + 优先支持</p>
             </div>
             <div class="price-item">
                 <h4>年付优惠</h4>
-                <div style="font-size: 1.2rem; font-weight: bold; color: #28a745;">¥299/年 或 ¥999/年</div>
+                <div style="font-size: 1.2rem; font-weight: bold; color: #28a745;">¥299/年 或 $49.99/年</div>
                 <p>节省2个月费用</p>
             </div>
         </div>
@@ -67,7 +69,7 @@
                         </div>
                     </div>
                 </div>
-                <p>推荐使用微信支付</p>
+                <p>🇨🇳 国内用户推荐</p>
                 <p>即时到账，手续费低</p>
                 <button class="button" onclick="getWeChatQR()">获取微信收款码</button>
             </div>
@@ -83,9 +85,25 @@
                         </div>
                     </div>
                 </div>
-                <p>支持支付宝扫码</p>
+                <p>🇨🇳 国内用户推荐</p>
                 <p>安全便捷，快速到账</p>
                 <button class="button" onclick="getAlipayQR()">获取支付宝收款码</button>
+            </div>
+
+            <div class="qr-card" style="background: linear-gradient(135deg, #0070ba, #003087); color: white;">
+                <h3>🌍 PayPal</h3>
+                <div class="qr-image">
+                    <div style="width: 100%; height: 100%; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                        <div style="text-align: center; color: #666;">
+                            <div style="font-size: 2rem; margin-bottom: 10px;">💰</div>
+                            <div style="font-weight: bold; color: #0070ba; font-size: 1.1rem;">+8618501935068</div>
+                            <div style="font-size: 0.8rem; margin-top: 5px;">PayPal账户</div>
+                        </div>
+                    </div>
+                </div>
+                <p>🌍 国际用户专用</p>
+                <p>全球通用，安全可靠</p>
+                <button class="button" onclick="payWithPayPal()">PayPal转账</button>
             </div>
         </div>
 
@@ -103,24 +121,24 @@
             <div class="step">
                 <div class="step-number">2</div>
                 <div>
-                    <strong>联系客服</strong><br>
-                    微信: 18501935068 获取收款二维码
+                    <strong>选择支付方式</strong><br>
+                    微信支付/支付宝(国内) 或 PayPal(国际)
                 </div>
             </div>
             
             <div class="step">
                 <div class="step-number">3</div>
                 <div>
-                    <strong>扫码支付</strong><br>
-                    使用微信或支付宝扫码付款
+                    <strong>联系客服/直接支付</strong><br>
+                    微信: 18501935068 或 PayPal: +8618501935068
                 </div>
             </div>
             
             <div class="step">
                 <div class="step-number">4</div>
                 <div>
-                    <strong>发送截图</strong><br>
-                    付款成功后截图发送给客服
+                    <strong>完成支付</strong><br>
+                    扫码支付或PayPal转账
                 </div>
             </div>
             
@@ -135,8 +153,20 @@
 
         <div class="contact-info">
             <h3>📞 客服联系方式</h3>
-            <p><strong>微信:</strong> 18501935068</p>
-            <p><strong>邮箱:</strong> 18501935068@163.com</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0;">
+                <div>
+                    <p><strong>💬 微信:</strong> 18501935068</p>
+                    <p><small>获取微信/支付宝收款码</small></p>
+                </div>
+                <div>
+                    <p><strong>📧 邮箱:</strong> 18501935068@163.com</p>
+                    <p><small>邮件咨询和技术支持</small></p>
+                </div>
+                <div>
+                    <p><strong>💰 PayPal:</strong> +8618501935068</p>
+                    <p><small>国际用户直接转账</small></p>
+                </div>
+            </div>
             <p style="color: #28a745; font-weight: bold;">⚡ 24小时在线客服，付款后立即开通！</p>
             <button class="button" onclick="contactCustomerService()">联系客服</button>
         </div>
@@ -178,20 +208,49 @@
 ⚡ 客服会立即发送收款码给您！`);
         }
         
+        function payWithPayPal() {
+            alert(`PayPal转账支付：
+
+💰 PayPal账户: +8618501935068
+
+💳 支付金额：
+• 个人版: $4.99/月
+• 专业版: $14.99/月
+• 年付优惠: $49.99/年
+
+📋 转账步骤：
+1. 登录您的PayPal账户
+2. 选择"转账给朋友"
+3. 输入账户: +8618501935068
+4. 输入对应金额
+5. 备注: JELILIAN AI升级 + 套餐类型
+6. 完成转账后截图发送给客服
+
+📞 客服确认: 微信 18501935068
+
+⚡ 转账完成后请联系客服确认开通！`);
+        }
+        
         function contactCustomerService() {
             alert(`联系JELILIAN AI客服：
 
 📞 联系方式：
 • 微信: 18501935068
 • 邮箱: 18501935068@163.com
+• PayPal: +8618501935068
 
 💬 咨询内容：
-我想升级JELILIAN AI付费版本，请提供收款二维码。
+我想升级JELILIAN AI付费版本
 
 套餐选择：
-□ 个人版 ¥29/月
-□ 专业版 ¥99/月  
-□ 年付优惠
+□ 个人版 ¥29/月 或 $4.99/月
+□ 专业版 ¥99/月 或 $14.99/月
+□ 年付优惠 ¥299/年 或 $49.99/年
+
+💳 支付方式：
+□ 微信支付 (国内推荐)
+□ 支付宝 (国内推荐)  
+□ PayPal (国际用户)
 
 ⚡ 我们将在1小时内回复您！`);
         }
