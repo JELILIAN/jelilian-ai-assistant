@@ -3,12 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
-// 使用动态导入来处理node-fetch
-let fetch;
-(async () => {
-    const fetchModule = await import('node-fetch');
-    fetch = fetchModule.default;
-})();
+// 动态导入 node-fetch
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 const app = express();
 const PORT = process.env.PORT || 3000;

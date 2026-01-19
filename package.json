@@ -23,7 +23,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.22.1",
-    "node-fetch": "^2.7.0"
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
