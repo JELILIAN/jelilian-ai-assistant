@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JELILIAN AI - 部署调试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        .loading { background: #fff3cd; border-color: #ffeaa7; }
+        button { padding: 10px 20px; margin: 10px 5px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        textarea { width: 100%; height: 100px; margin: 10px 0; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔧 JELILIAN AI 部署调试工具</h1>
+    
+    <div class="test-section">
+        <h2>1. 基础信息</h2>
+        <p><strong>当前地址:</strong> <span id="currentUrl"></span></p>
+        <p><strong>API基础地址:</strong> <span id="apiBase"></span></p>
+    </div>
+    
+    <div class="test-section" id="configTest">
+        <h2>2. API配置测试</h2>
+        <button class="btn-primary" onclick="testConfig()">测试 /api/config</button>
+        <div id="configResult"></div>
+    </div>
+    
+    <div class="test-section" id="usageTest">
+        <h2>3. 使用状态测试</h2>
+        <button class="btn-primary" onclick="testUsage()">测试 /api/usage</button>
+        <div id="usageResult"></div>
+    </div>
+    
+    <div class="test-section" id="chatTest">
+        <h2>4. AI聊天测试</h2>
+        <textarea id="testMessage" placeholder="输入测试消息，例如：你好"></textarea>
+        <button class="btn-success" onclick="testChat()">测试 AI 聊天</button>
+        <div id="chatResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>5. 问题诊断</h2>
+        <button class="btn-primary" onclick="runFullDiagnosis()">运行完整诊断</button>
+        <div id="diagnosisResult"></div>
+    </div>
+
+    <script>
+        // 初始化页面信息
+        document.getElementById('currentUrl').textContent = window.location.href;
+        const API_BASE = window.location.origin + '/api';
+        document.getElementById('apiBase').textContent = API_BASE;
+        
+        // 测试API配置
+        async function testConfig() {
+            const resultDiv = document.getElementById('configResult');
+            resultDiv.innerHTML = '<p>🔄 测试中...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/config`);
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ API配置测试成功</h4>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ API配置测试失败</h4>
+                            <p>状态码: ${response.status}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ API配置请求失败</h4>
+                        <p>错误: ${error.message}</p>
+                        <p>可能原因: API路由未正确配置或服务器错误</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 测试使用状态
+        async function testUsage() {
+            const resultDiv = document.getElementById('usageResult');
+            resultDiv.innerHTML = '<p>🔄 测试中...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/usage`);
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ 使用状态测试成功</h4>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ 使用状态测试失败</h4>
+                            <p>状态码: ${response.status}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ 使用状态请求失败</h4>
+                        <p>错误: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 测试AI聊天
+        async function testChat() {
+            const message = document.getElementById('testMessage').value.trim();
+            const resultDiv = document.getElementById('chatResult');
+            
+            if (!message) {
+                alert('请输入测试消息');
+                return;
+            }
+            
+            resultDiv.innerHTML = '<p>🔄 AI处理中，请稍候...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        provider: 'qwen',
+                        options: { maxTokens: 500 }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ AI聊天测试成功</h4>
+                            <p><strong>问题:</strong> ${message}</p>
+                            <p><strong>AI回答:</strong></p>
+                            <div style="background: white; padding: 15px; border-radius: 4px; margin: 10px 0;">
+                                ${data.text.replace(/\n/g, '<br>')}
+                            </div>
+                            <p><strong>响应时间:</strong> ${data.responseTime}ms</p>
+                            <p><strong>使用情况:</strong> ${data.usage ? JSON.stringify(data.usage) : '无'}</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ AI聊天测试失败</h4>
+                            <p>状态码: ${response.status}</p>
+                            <p>错误信息: ${data.error || '未知错误'}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ AI聊天请求失败</h4>
+                        <p>错误: ${error.message}</p>
+                        <p>可能原因: 网络问题、API路由错误或服务器错误</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 运行完整诊断
+        async function runFullDiagnosis() {
+            const resultDiv = document.getElementById('diagnosisResult');
+            resultDiv.innerHTML = '<p>🔄 运行完整诊断...</p>';
+            
+            const results = [];
+            
+            // 测试各个API端点
+            const tests = [
+                { name: 'API配置', url: `${API_BASE}/config` },
+                { name: '使用状态', url: `${API_BASE}/usage` }
+            ];
+            
+            for (const test of tests) {
+                try {
+                    const response = await fetch(test.url);
+                    const data = await response.json();
+                    results.push({
+                        name: test.name,
+                        status: response.ok ? '✅ 成功' : '❌ 失败',
+                        code: response.status,
+                        data: data
+                    });
+                } catch (error) {
+                    results.push({
+                        name: test.name,
+                        status: '❌ 错误',
+                        error: error.message
+                    });
+                }
+            }
+            
+            // 显示诊断结果
+            let html = '<h4>📊 诊断结果:</h4>';
+            results.forEach(result => {
+                html += `
+                    <div style="margin: 10px 0; padding: 10px; border-left: 4px solid ${result.status.includes('✅') ? '#28a745' : '#dc3545'};">
+                        <strong>${result.name}:</strong> ${result.status}
+                        ${result.code ? `<br>状态码: ${result.code}` : ''}
+                        ${result.error ? `<br>错误: ${result.error}` : ''}
+                    </div>
+                `;
+            });
+            
+            // 添加建议
+            html += `
+                <div style="margin-top: 20px; padding: 15px; background: #e7f3ff; border-radius: 4px;">
+                    <h4>💡 问题解决建议:</h4>
+                    <ul>
+                        <li>如果API配置失败: 检查Vercel环境变量是否正确设置</li>
+                        <li>如果聊天功能失败: 检查API密钥是否有效</li>
+                        <li>如果所有API都失败: 检查Vercel部署是否成功</li>
+                        <li>如果部分功能正常: 可能是特定API路由的问题</li>
+                    </ul>
+                </div>
+            `;
+            
+            resultDiv.innerHTML = html;
+        }
+        
+        // 页面加载时自动运行基础测试
+        window.onload = function() {
+            setTimeout(() => {
+                testConfig();
+                testUsage();
+            }, 1000);
+        };
+    </script>
+</body>
+</html>
