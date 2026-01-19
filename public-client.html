@@ -471,9 +471,13 @@
                                 style="padding: 12px 24px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 10px;">
                             关闭
                         </button>
+                        <button onclick="window.open('qr-payment.html', '_blank')" 
+                                style="padding: 12px 24px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 10px;">
+                            扫码支付
+                        </button>
                         <button onclick="contactAdmin()" 
                                 style="padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 10px;">
-                            联系管理员
+                            联系客服
                         </button>
                     </div>
                 </div>
@@ -484,22 +488,23 @@
         
         // 联系管理员
         function contactAdmin() {
-            alert(`联系管理员升级到付费版本：
-
-📞 联系方式：
-• 微信: 18501935068 (支持微信支付)
-• 邮箱: 18501935068@163.com (支持PayPal)
+            alert(`升级到JELILIAN AI付费版本：
 
 💰 价格方案：
 • 个人版: ¥29/月 (无限使用)
 • 专业版: ¥99/月 (高级功能)
-• 年付优惠: 8.3折
+• 年付优惠: ¥299/年 或 ¥999/年
 
 💳 支付方式：
-• 国内用户: 微信支付/支付宝/银行转账
-• 国际用户: PayPal/Wise
+• 微信支付: 扫码支付 (推荐)
+• 支付宝: 扫码支付 (推荐)
 
-⚡ 付款后立即开通，24小时客服支持！`);
+📞 联系方式：
+• 微信: 18501935068
+• 邮箱: 18501935068@163.com
+
+⚡ 扫码付款后请截图发送给客服，立即开通！
+💎 付费版本支持无限制使用所有AI功能！`);
         }
         
         // 显示配置弹窗

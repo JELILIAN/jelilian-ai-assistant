@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💳 JELILIAN AI 扫码支付</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { color: #333; font-size: 2.5rem; margin-bottom: 10px; }
+        .header p { color: #666; font-size: 1.2rem; }
+        .pricing-section { background: #f8f9fa; padding: 30px; border-radius: 15px; margin: 30px 0; text-align: center; }
+        .price-item { display: inline-block; margin: 10px 20px; padding: 15px 25px; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .price-item.featured { background: linear-gradient(135deg, #007bff, #0056b3); color: white; }
+        .qr-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin: 40px 0; }
+        .qr-card { background: #f8f9fa; padding: 30px; border-radius: 15px; text-align: center; border: 2px solid transparent; transition: all 0.3s; }
+        .qr-card:hover { border-color: #007bff; transform: translateY(-5px); }
+        .qr-card.wechat { background: linear-gradient(135deg, #07c160, #00ae42); color: white; }
+        .qr-card.alipay { background: linear-gradient(135deg, #1677ff, #0958d9); color: white; }
+        .qr-image { width: 200px; height: 200px; margin: 20px auto; background: white; padding: 10px; border-radius: 10px; }
+        .qr-image img { width: 100%; height: 100%; object-fit: contain; }
+        .payment-steps { background: #fff3cd; border: 1px solid #ffeaa7; padding: 25px; border-radius: 12px; margin: 30px 0; }
+        .step { margin: 15px 0; padding: 15px; background: white; border-radius: 8px; display: flex; align-items: center; }
+        .step-number { width: 30px; height: 30px; background: #007bff; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold; }
+        .contact-info { background: #e9ecef; padding: 25px; border-radius: 12px; margin: 30px 0; text-align: center; }
+        .button { display: inline-block; background: #28a745; color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; margin: 10px; transition: all 0.3s; border: none; cursor: pointer; font-size: 16px; }
+        .button:hover { background: #1e7e34; transform: translateY(-2px); }
+        .warning { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 20px; border-radius: 8px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💳 JELILIAN AI 扫码支付</h1>
+            <p>选择支付方式，立即升级到付费版本</p>
+        </div>
+
+        <div class="pricing-section">
+            <h3>💰 价格方案</h3>
+            <div class="price-item">
+                <h4>个人版</h4>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #007bff;">¥29/月</div>
+                <p>无限AI对话</p>
+            </div>
+            <div class="price-item featured">
+                <h4>专业版 🔥</h4>
+                <div style="font-size: 1.5rem; font-weight: bold;">¥99/月</div>
+                <p>高级功能 + 优先支持</p>
+            </div>
+            <div class="price-item">
+                <h4>年付优惠</h4>
+                <div style="font-size: 1.2rem; font-weight: bold; color: #28a745;">¥299/年 或 ¥999/年</div>
+                <p>节省2个月费用</p>
+            </div>
+        </div>
+
+        <div class="qr-section">
+            <div class="qr-card wechat">
+                <h3>💬 微信支付</h3>
+                <div class="qr-image">
+                    <div style="width: 100%; height: 100%; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                        <div style="text-align: center; color: #666;">
+                            <div style="font-size: 2rem; margin-bottom: 10px;">📱</div>
+                            <div>微信收款码</div>
+                            <div style="font-size: 0.8rem; margin-top: 5px;">请联系客服获取</div>
+                        </div>
+                    </div>
+                </div>
+                <p>推荐使用微信支付</p>
+                <p>即时到账，手续费低</p>
+                <button class="button" onclick="getWeChatQR()">获取微信收款码</button>
+            </div>
+
+            <div class="qr-card alipay">
+                <h3>💙 支付宝</h3>
+                <div class="qr-image">
+                    <div style="width: 100%; height: 100%; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                        <div style="text-align: center; color: #666;">
+                            <div style="font-size: 2rem; margin-bottom: 10px;">💳</div>
+                            <div>支付宝收款码</div>
+                            <div style="font-size: 0.8rem; margin-top: 5px;">请联系客服获取</div>
+                        </div>
+                    </div>
+                </div>
+                <p>支持支付宝扫码</p>
+                <p>安全便捷，快速到账</p>
+                <button class="button" onclick="getAlipayQR()">获取支付宝收款码</button>
+            </div>
+        </div>
+
+        <div class="payment-steps">
+            <h3 style="text-align: center; margin-bottom: 20px; color: #856404;">📋 支付流程</h3>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div>
+                    <strong>选择套餐</strong><br>
+                    个人版 ¥29/月 或 专业版 ¥99/月
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <div>
+                    <strong>联系客服</strong><br>
+                    微信: 18501935068 获取收款二维码
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <div>
+                    <strong>扫码支付</strong><br>
+                    使用微信或支付宝扫码付款
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">4</div>
+                <div>
+                    <strong>发送截图</strong><br>
+                    付款成功后截图发送给客服
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">5</div>
+                <div>
+                    <strong>立即开通</strong><br>
+                    收到截图后1小时内开通服务
+                </div>
+            </div>
+        </div>
+
+        <div class="contact-info">
+            <h3>📞 客服联系方式</h3>
+            <p><strong>微信:</strong> 18501935068</p>
+            <p><strong>邮箱:</strong> 18501935068@163.com</p>
+            <p style="color: #28a745; font-weight: bold;">⚡ 24小时在线客服，付款后立即开通！</p>
+            <button class="button" onclick="contactCustomerService()">联系客服</button>
+        </div>
+
+        <div class="warning">
+            <h4>⚠️ 重要提醒</h4>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+                <li>付款前请先联系客服确认套餐和价格</li>
+                <li>付款后请务必截图发送给客服进行确认</li>
+                <li>如有任何问题，请及时联系客服处理</li>
+                <li>支持7天无理由退款保障</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <button class="button" onclick="goBack()" style="background: #6c757d;">返回主页</button>
+            <button class="button" onclick="contactCustomerService()">立即联系客服</button>
+        </div>
+    </div>
+
+    <script>
+        function getWeChatQR() {
+            alert(`获取微信收款码：
+
+📞 请联系客服获取最新收款码
+• 微信: 18501935068
+• 说明: 我要升级JELILIAN AI，请提供微信收款码
+
+⚡ 客服会立即发送收款码给您！`);
+        }
+        
+        function getAlipayQR() {
+            alert(`获取支付宝收款码：
+
+📞 请联系客服获取最新收款码
+• 微信: 18501935068
+• 说明: 我要升级JELILIAN AI，请提供支付宝收款码
+
+⚡ 客服会立即发送收款码给您！`);
+        }
+        
+        function contactCustomerService() {
+            alert(`联系JELILIAN AI客服：
+
+📞 联系方式：
+• 微信: 18501935068
+• 邮箱: 18501935068@163.com
+
+💬 咨询内容：
+我想升级JELILIAN AI付费版本，请提供收款二维码。
+
+套餐选择：
+□ 个人版 ¥29/月
+□ 专业版 ¥99/月  
+□ 年付优惠
+
+⚡ 我们将在1小时内回复您！`);
+        }
+        
+        function goBack() {
+            window.history.back();
+        }
+        
+        // 页面加载时显示欢迎信息
+        window.onload = function() {
+            console.log('💳 JELILIAN AI 扫码支付页面已加载');
+        };
+    </script>
+</body>
+</html>
