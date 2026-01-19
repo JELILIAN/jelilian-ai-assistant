@@ -133,23 +133,39 @@
             color: #666; font-size: 0.9rem; line-height: 1.4;
         }
         
+        /* 使用次数显示 */
+        .usage-indicator {
+            position: fixed; top: 20px; right: 20px; background: rgba(255,255,255,0.95);
+            padding: 10px 15px; border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-size: 0.9rem; color: #666; z-index: 100;
+        }
+        
+        .usage-indicator.warning {
+            background: rgba(255,243,205,0.95); color: #856404; border: 1px solid #ffeaa7;
+        }
+        
+        .usage-indicator.danger {
+            background: rgba(248,215,218,0.95); color: #721c24; border: 1px solid #f5c6cb;
+        }
         /* 响应式设计 */
         @media (max-width: 768px) {
             .main-title { font-size: 2rem; }
             .function-tabs { gap: 10px; }
             .suggestion-card { flex-direction: column; text-align: center; }
+            .usage-indicator { top: 10px; right: 10px; font-size: 0.8rem; }
         }
     </style>
 </head>
 <body>
+    <!-- 使用次数指示器 -->
+    <div class="usage-indicator" id="usageIndicator" style="display: none;">
+        <span id="usageText">加载中...</span>
+    </div>
     <!-- 顶部导航 -->
     <header class="header">
         <div class="logo">JELILIAN</div>
         <div class="user-avatar">J</div>
     </header>
-    
-    <!-- 主内容 -->
-    <main class="main-content">
         <h1 class="main-title">我能为你做什么？</h1>
         
         <!-- 输入区域 -->
@@ -295,14 +311,20 @@
                 return;
             }
             
-            // 获取系统配置
+            // 获取系统配置和使用状态
             let systemConfig;
             try {
                 const configResponse = await fetch(`${API_BASE}/config`);
                 systemConfig = await configResponse.json();
             } catch (error) {
                 console.error('获取系统配置失败:', error);
-                systemConfig = { config: { enableApiKeyInput: true } };
+                systemConfig = { config: { enableApiKeyInput: true }, usage: { remaining: 0 } };
+            }
+            
+            // 检查使用次数限制
+            if (systemConfig.usage && systemConfig.usage.remaining <= 0) {
+                showUsageLimitModal(systemConfig.usage);
+                return;
             }
             
             // 检查是否需要用户输入API密钥
@@ -349,9 +371,14 @@
                 
                 if (data.success) {
                     // 显示结果
-                    showResult(message, data.text);
+                    showResult(message, data.text, data.usage);
                 } else {
-                    alert('处理失败: ' + data.error);
+                    if (response.status === 429) {
+                        // 使用次数超限
+                        showUsageLimitModal(data.usageInfo, data.upgradeInfo);
+                    } else {
+                        alert('处理失败: ' + data.error);
+                    }
                     input.value = message;
                 }
             } catch (error) {
@@ -363,8 +390,23 @@
         }
         
         // 显示结果
-        function showResult(question, answer) {
+        function showResult(question, answer, usage) {
             const resultWindow = window.open('', '_blank', 'width=800,height=600');
+            
+            let usageInfo = '';
+            if (usage) {
+                usageInfo = `
+                    <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <h3 style="color: #856404; margin: 0 0 10px 0;">📊 使用情况</h3>
+                        <p style="margin: 0; color: #856404;">
+                            已使用: ${usage.used}/${usage.limit} 次 | 
+                            剩余: ${usage.remaining} 次
+                            ${usage.remaining === 0 ? '<br><strong>⚠️ 免费额度已用完，请联系管理员获取更多使用次数</strong>' : ''}
+                        </p>
+                    </div>
+                `;
+            }
+            
             resultWindow.document.write(`
                 <!DOCTYPE html>
                 <html>
@@ -387,12 +429,62 @@
                         <h2>JELILIAN 的回答：</h2>
                         <pre>${answer}</pre>
                     </div>
+                    ${usageInfo}
                 </body>
                 </html>
             `);
             
             // 清空输入框
             document.getElementById('mainInput').value = '';
+        }
+        
+        // 显示使用次数限制弹窗
+        function showUsageLimitModal(usageInfo, upgradeInfo) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.5); display: flex; align-items: center;
+                justify-content: center; z-index: 1000;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: white; padding: 40px; border-radius: 12px; max-width: 500px; width: 90%; text-align: center;">
+                    <div style="font-size: 60px; margin-bottom: 20px;">⚠️</div>
+                    <h2 style="color: #dc3545; margin-bottom: 20px;">免费使用次数已用完</h2>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: left;">
+                        <h4 style="margin: 0 0 10px 0; color: #495057;">使用记录：</h4>
+                        <p style="margin: 5px 0; color: #6c757d;">已使用次数: ${usageInfo ? usageInfo.used : 1}</p>
+                        <p style="margin: 5px 0; color: #6c757d;">免费限制: ${usageInfo ? usageInfo.limit : 1} 次</p>
+                        ${usageInfo && usageInfo.firstUse ? `<p style="margin: 5px 0; color: #6c757d;">首次使用: ${usageInfo.firstUse}</p>` : ''}
+                    </div>
+                    <div style="background: #e7f3ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <h4 style="margin: 0 0 15px 0; color: #0066cc;">💎 升级到付费版本</h4>
+                        <ul style="text-align: left; color: #0066cc; margin: 0; padding-left: 20px;">
+                            <li>无限制使用AI功能</li>
+                            <li>更快的响应速度</li>
+                            <li>优先客服支持</li>
+                            <li>更多高级功能</li>
+                        </ul>
+                    </div>
+                    <div style="margin-top: 30px;">
+                        <button onclick="this.closest('div').parentElement.remove()" 
+                                style="padding: 12px 24px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 10px;">
+                            关闭
+                        </button>
+                        <button onclick="contactAdmin()" 
+                                style="padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 10px;">
+                            联系管理员
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        // 联系管理员
+        function contactAdmin() {
+            alert('请联系管理员获取付费版本：\\n\\n微信: [你的微信]\\n邮箱: [你的邮箱]\\n\\n付费版本支持无限制使用所有AI功能！');
         }
         
         // 显示配置弹窗
@@ -479,9 +571,42 @@
             }
         });
         
+    
+    <!-- 主内容 -->
+    <main class="main-content">
+        // 更新使用次数显示
+        async function updateUsageIndicator() {
+            try {
+                const response = await fetch(`${API_BASE}/usage`);
+                const data = await response.json();
+                
+                if (data.success && data.usage) {
+                    const usage = data.usage;
+                    const indicator = document.getElementById('usageIndicator');
+                    const text = document.getElementById('usageText');
+                    
+                    if (usage.remaining <= 0) {
+                        text.textContent = `免费额度已用完 (${usage.used}/${usage.limit})`;
+                        indicator.className = 'usage-indicator danger';
+                    } else if (usage.remaining === 1) {
+                        text.textContent = `最后 ${usage.remaining} 次免费使用`;
+                        indicator.className = 'usage-indicator warning';
+                    } else {
+                        text.textContent = `剩余 ${usage.remaining} 次免费使用`;
+                        indicator.className = 'usage-indicator';
+                    }
+                    
+                    indicator.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('获取使用状态失败:', error);
+            }
+        }
+        
         // 初始化页面
         document.addEventListener('DOMContentLoaded', function() {
             updateSuggestions('slides');
+            updateUsageIndicator();
         });
     </script>
 </body>

@@ -295,14 +295,20 @@
                 return;
             }
             
-            // 获取系统配置
+            // 获取系统配置和使用状态
             let systemConfig;
             try {
                 const configResponse = await fetch(`${API_BASE}/config`);
                 systemConfig = await configResponse.json();
             } catch (error) {
                 console.error('获取系统配置失败:', error);
-                systemConfig = { config: { enableApiKeyInput: true } };
+                systemConfig = { config: { enableApiKeyInput: true }, usage: { remaining: 0 } };
+            }
+            
+            // 检查使用次数限制
+            if (systemConfig.usage && systemConfig.usage.remaining <= 0) {
+                showUsageLimitModal(systemConfig.usage);
+                return;
             }
             
             // 检查是否需要用户输入API密钥
@@ -349,9 +355,14 @@
                 
                 if (data.success) {
                     // 显示结果
-                    showResult(message, data.text);
+                    showResult(message, data.text, data.usage);
                 } else {
-                    alert('处理失败: ' + data.error);
+                    if (response.status === 429) {
+                        // 使用次数超限
+                        showUsageLimitModal(data.usageInfo, data.upgradeInfo);
+                    } else {
+                        alert('处理失败: ' + data.error);
+                    }
                     input.value = message;
                 }
             } catch (error) {

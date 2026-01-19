@@ -12,6 +12,10 @@ const DEFAULT_QWEN_API_KEY = process.env.QWEN_API_KEY || '';
 const DEFAULT_PROVIDER = process.env.DEFAULT_PROVIDER || 'qwen';
 const ENABLE_API_KEY_INPUT = process.env.ENABLE_API_KEY_INPUT === 'true';
 
+// 使用次数限制配置
+const FREE_USAGE_LIMIT = 1; // 每个用户免费使用1次
+const userUsageMap = new Map(); // 存储用户使用次数 {ip: {count: number, firstUse: timestamp}}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -118,26 +122,114 @@ const API_CONFIGS = {
     }
 };
 
+// 使用次数检查中间件
+function checkUsageLimit(req, res, next) {
+    const userIP = req.ip || req.connection.remoteAddress || req.socket.remoteAddress;
+    const userAgent = req.get('User-Agent') || '';
+    const userKey = `${userIP}_${userAgent.substring(0, 50)}`; // 使用IP+浏览器标识
+    
+    // 获取用户使用记录
+    let userUsage = userUsageMap.get(userKey);
+    
+    if (!userUsage) {
+        // 新用户，初始化记录
+        userUsage = {
+            count: 0,
+            firstUse: Date.now(),
+            lastUse: Date.now()
+        };
+        userUsageMap.set(userKey, userUsage);
+    }
+    
+    // 检查是否超过限制
+    if (userUsage.count >= FREE_USAGE_LIMIT) {
+        return res.status(429).json({
+            success: false,
+            error: '免费使用次数已用完',
+            message: '您已使用完免费额度，请联系管理员获取更多使用次数',
+            usageInfo: {
+                used: userUsage.count,
+                limit: FREE_USAGE_LIMIT,
+                firstUse: new Date(userUsage.firstUse).toLocaleString('zh-CN'),
+                lastUse: new Date(userUsage.lastUse).toLocaleString('zh-CN')
+            },
+            upgradeInfo: {
+                contact: '联系管理员获取付费版本',
+                features: ['无限制使用', '更快响应速度', '优先客服支持']
+            }
+        });
+    }
+    
+    // 记录本次使用
+    userUsage.count++;
+    userUsage.lastUse = Date.now();
+    userUsageMap.set(userKey, userUsage);
+    
+    // 将使用信息添加到请求对象
+    req.userUsage = userUsage;
+    req.userKey = userKey;
+    
+    next();
+}
+
+// 获取用户使用状态
+function getUserUsageStatus(req) {
+    const userIP = req.ip || req.connection.remoteAddress || req.socket.remoteAddress;
+    const userAgent = req.get('User-Agent') || '';
+    const userKey = `${userIP}_${userAgent.substring(0, 50)}`;
+    
+    const userUsage = userUsageMap.get(userKey);
+    
+    if (!userUsage) {
+        return {
+            used: 0,
+            remaining: FREE_USAGE_LIMIT,
+            limit: FREE_USAGE_LIMIT,
+            isNewUser: true
+        };
+    }
+    
+    return {
+        used: userUsage.count,
+        remaining: Math.max(0, FREE_USAGE_LIMIT - userUsage.count),
+        limit: FREE_USAGE_LIMIT,
+        firstUse: new Date(userUsage.firstUse).toLocaleString('zh-CN'),
+        lastUse: new Date(userUsage.lastUse).toLocaleString('zh-CN'),
+        isNewUser: false
+    };
+}
 // 路由：首页 - 直接显示主应用
 app.get('/', (req, res) => {
+
     res.sendFile(path.join(__dirname, 'public-client.html'));
 });
 
+// 路由：获取用户使用状态
+app.get('/api/usage', (req, res) => {
+    const usageStatus = getUserUsageStatus(req);
+    res.json({
+        success: true,
+        usage: usageStatus
+    });
+});
 // 路由：获取系统配置
 app.get('/api/config', (req, res) => {
+    const usageStatus = getUserUsageStatus(req);
     res.json({
         success: true,
         config: {
             enableApiKeyInput: ENABLE_API_KEY_INPUT,
             defaultProvider: DEFAULT_PROVIDER,
             hasDefaultApiKey: !!DEFAULT_QWEN_API_KEY,
-            supportedProviders: Object.keys(API_CONFIGS)
-        }
+            supportedProviders: Object.keys(API_CONFIGS),
+            freeUsageLimit: FREE_USAGE_LIMIT
+        },
+        usage: usageStatus
     });
 });
 
-// 路由：AI聊天接口
-app.post('/api/chat', async (req, res) => {
+// 路由：AI聊天接口 (添加使用次数限制)
+app.post('/api/chat', checkUsageLimit, async (req, res) => {
     try {
         const { message, provider = DEFAULT_PROVIDER, apiKey, options = {} } = req.body;
         
@@ -226,7 +318,12 @@ app.post('/api/chat', async (req, res) => {
             ...result,
             provider: provider,
             responseTime: responseTime,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            usage: {
+                used: req.userUsage.count,
+                remaining: Math.max(0, FREE_USAGE_LIMIT - req.userUsage.count),
+                limit: FREE_USAGE_LIMIT
+            }
         });
         
     } catch (error) {
