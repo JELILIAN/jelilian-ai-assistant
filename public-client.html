@@ -295,13 +295,32 @@
                 return;
             }
             
-            // 检查API密钥配置
-            const apiKey = localStorage.getItem('jelilian_api_key');
-            const provider = localStorage.getItem('jelilian_provider') || 'qwen';
+            // 获取系统配置
+            let systemConfig;
+            try {
+                const configResponse = await fetch(`${API_BASE}/config`);
+                systemConfig = await configResponse.json();
+            } catch (error) {
+                console.error('获取系统配置失败:', error);
+                systemConfig = { config: { enableApiKeyInput: true } };
+            }
             
-            if (!apiKey) {
-                showConfigModal();
-                return;
+            // 检查是否需要用户输入API密钥
+            let apiKey = null;
+            let provider = 'qwen';
+            
+            if (systemConfig.config.enableApiKeyInput) {
+                // 需要用户输入API密钥
+                apiKey = localStorage.getItem('jelilian_api_key');
+                provider = localStorage.getItem('jelilian_provider') || 'qwen';
+                
+                if (!apiKey) {
+                    showConfigModal();
+                    return;
+                }
+            } else {
+                // 使用服务器默认配置
+                provider = systemConfig.config.defaultProvider || 'qwen';
             }
             
             // 显示处理状态
@@ -309,15 +328,21 @@
             input.disabled = true;
             
             try {
+                const requestBody = {
+                    message: message,
+                    provider: provider,
+                    options: { maxTokens: 2000 }
+                };
+                
+                // 只有在需要时才添加API密钥
+                if (apiKey) {
+                    requestBody.apiKey = apiKey;
+                }
+                
                 const response = await fetch(`${API_BASE}/chat`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        message: message,
-                        provider: provider,
-                        apiKey: apiKey,
-                        options: { maxTokens: 2000 }
-                    })
+                    body: JSON.stringify(requestBody)
                 });
                 
                 const data = await response.json();

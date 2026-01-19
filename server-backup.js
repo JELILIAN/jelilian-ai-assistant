@@ -123,19 +123,6 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public-client.html'));
 });
 
-// 路由：获取系统配置
-app.get('/api/config', (req, res) => {
-    res.json({
-        success: true,
-        config: {
-            enableApiKeyInput: ENABLE_API_KEY_INPUT,
-            defaultProvider: DEFAULT_PROVIDER,
-            hasDefaultApiKey: !!DEFAULT_QWEN_API_KEY,
-            supportedProviders: Object.keys(API_CONFIGS)
-        }
-    });
-});
-
 // 路由：AI聊天接口
 app.post('/api/chat', async (req, res) => {
     try {
@@ -342,8 +329,18 @@ app.post('/api/test', async (req, res) => {
     }
 });
 
-// 路由：获取支持的AI服务商
-app.get('/api/providers', (req, res) => {
+// 路由：获取系统配置
+app.get('/api/config', (req, res) => {
+    res.json({
+        success: true,
+        config: {
+            enableApiKeyInput: ENABLE_API_KEY_INPUT,
+            defaultProvider: DEFAULT_PROVIDER,
+            hasDefaultApiKey: !!DEFAULT_QWEN_API_KEY,
+            supportedProviders: Object.keys(API_CONFIGS)
+        }
+    });
+});
     const providers = Object.keys(API_CONFIGS).map(key => ({
         id: key,
         name: key === 'qwen' ? '阿里千问' : key === 'openai' ? 'OpenAI' : key,
@@ -351,11 +348,8 @@ app.get('/api/providers', (req, res) => {
                     key === 'openai' ? 'OpenAI GPT模型，功能强大' : '其他AI服务商'
     }));
     
-    res.json({
-        success: true,
-        providers: providers
-    });
-});
+// 路由：获取支持的AI服务商
+app.get('/api/providers', (req, res) => {
 
 // 路由：批量对比不同AI的响应
 app.post('/api/compare', async (req, res) => {
@@ -437,8 +431,6 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`🔧 API端点: http://localhost:${PORT}/api/chat`);
     console.log(`📚 支持的服务商: ${Object.keys(API_CONFIGS).join(', ')}`);
     console.log(`🌍 环境: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`🔑 默认API密钥: ${DEFAULT_QWEN_API_KEY ? '已配置' : '未配置'}`);
-    console.log(`👤 用户输入API密钥: ${ENABLE_API_KEY_INPUT ? '启用' : '禁用'}`);
 });
 
 module.exports = app;
