@@ -1,0 +1,6 @@
+{
+  "QWEN_API_KEY": "sk-bddda4e9e2ef4aa5acdb773207ac4036",
+  "DEFAULT_PROVIDER": "qwen",
+  "ENABLE_API_KEY_INPUT": "false",
+  "NODE_ENV": "production"
+}
